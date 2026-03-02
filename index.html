@@ -290,16 +290,116 @@
         box-shadow: 0 0 0 3px rgba(198, 138, 58, 0.22);
       }
 
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .hamburger span {
+        width: 100%;
+        height: 2px;
+        background: var(--text);
+        border-radius: 1px;
+        transition: all var(--dur) var(--ease);
+      }
+
+      .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(8px, 8px);
+      }
+
+      .hamburger.active span:nth-child(2) {
+        opacity: 0;
+      }
+
+      .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+      }
+
+      .dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(15, 15, 17, 0.98);
+        border-bottom: 1px solid rgba(38, 38, 43, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: var(--s-4) 0;
+        animation: slideDown var(--dur) var(--ease);
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .dropdown.active {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .dropdown a {
+        padding: var(--s-3) var(--s-6);
+        color: var(--muted);
+        border: none;
+        transition: var(--dur) var(--ease);
+        display: block;
+      }
+
+      .dropdown a:hover {
+        color: var(--text);
+        background: rgba(23, 23, 26, 0.8);
+      }
+
+      .dropdown a[aria-current="true"] {
+        color: var(--text);
+        background: rgba(198, 138, 58, 0.15);
+        border-left: 3px solid var(--accent);
+        padding-left: calc(var(--s-6) - 3px);
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background: rgba(15, 15, 17, 0.72);
+        border-bottom: 1px solid rgba(38, 38, 43, 0.7);
+        transition: transform var(--dur) var(--ease);
+      }
+
+      header.hide {
+        transform: translateY(-100%);
+      }
+
       @media (max-width: 820px) {
         .pill {
           display: none;
         }
         .nav {
           gap: var(--s-3);
+          position: relative;
         }
-        .nav-links a {
-          padding: 9px 10px;
-          font-size: 13px;
+        .nav-links {
+          display: none;
+        }
+        .hamburger {
+          display: flex;
         }
       }
 
@@ -1006,6 +1106,21 @@
             <a href="#contact">Contact</a>
           </div>
 
+          <button class="hamburger" id="hamburger" aria-label="Meniu navigare" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div class="dropdown" id="dropdown">
+            <a href="#prezentare">Prezentare</a>
+            <a href="#nevoi">Nevoi zilnice</a>
+            <a href="#ingrijire">Îngrijire</a>
+            <a href="#test">Test de potrivire</a>
+            <a href="#detaliat">Secțiune detaliată</a>
+            <a href="#contact">Contact</a>
+          </div>
+
           <!-- <div class="nav-actions">
             <span class="pill" aria-label="Indicator">
               <span class="dot" aria-hidden="true"></span>
@@ -1489,7 +1604,7 @@
 
     <script>
       /**
-       * JS minimal: nav activ + reveal + test
+       * JS minimal: nav activ + reveal + test + hamburger + scroll hide
        */
       (function () {
         const prefersReducedMotion = window.matchMedia(
@@ -1499,12 +1614,59 @@
         const y = document.getElementById("year");
         if (y) y.textContent = String(new Date().getFullYear());
 
-        // Nav activ
-        const navLinks = Array.from(
-          document.querySelectorAll(".nav-links a[href^='#']")
+        // Hamburger menu toggle
+        const hamburger = document.getElementById("hamburger");
+        const dropdown = document.getElementById("dropdown");
+
+        if (hamburger && dropdown) {
+          hamburger.addEventListener("click", () => {
+            const isActive = hamburger.classList.toggle("active");
+            dropdown.classList.toggle("active", isActive);
+            hamburger.setAttribute("aria-expanded", String(isActive));
+          });
+
+          // Închide dropdown la click pe link
+          const dropdownLinks = dropdown.querySelectorAll("a");
+          dropdownLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+              hamburger.classList.remove("active");
+              dropdown.classList.remove("active");
+              hamburger.setAttribute("aria-expanded", "false");
+            });
+          });
+        }
+
+        // Scroll hide header
+        const header = document.querySelector("header");
+        let lastScrollTop = 0;
+
+        window.addEventListener(
+          "scroll",
+          () => {
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > lastScrollTop && scrollTop > 72) {
+              // Scroll down
+              header.classList.add("hide");
+            } else {
+              // Scroll up
+              header.classList.remove("hide");
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+          },
+          { passive: true }
         );
 
-        const sectionIds = navLinks
+        // Nav activ
+        const navLinksDesktop = Array.from(
+          document.querySelectorAll(".nav-links a[href^='#']")
+        );
+        const navLinksMobile = Array.from(
+          document.querySelectorAll(".dropdown a[href^='#']")
+        );
+        const navLinks = [...navLinksDesktop, ...navLinksMobile];
+
+        const sectionIds = navLinksDesktop
           .map((a) => a.getAttribute("href"))
           .filter(Boolean)
           .map((href) => href.slice(1));
