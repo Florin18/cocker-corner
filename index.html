@@ -1139,7 +1139,7 @@
         <div class="container hero-grid">
           <div class="reveal">
             <p class="eyebrow">Cocker Spaniel Englez</p>
-            <h1 id="hero-title">Un ghid modern și clar despre cockeri.</h1>
+            <h1 id="hero-title">Un ghid modern și clar despre cockeri</h1>
             <p>
               Cockerul spaniel englez este un câine energic, atent la oameni și foarte receptiv la antrenament. Cheia este
               consecvența: mișcare zilnică, stimulare mentală și îngrijire regulată.
@@ -1633,6 +1633,18 @@
               dropdown.classList.remove("active");
               hamburger.setAttribute("aria-expanded", "false");
             });
+          });
+
+          // Închide dropdown la click în afara
+          document.addEventListener("click", (e) => {
+            const isClickInsideDropdown = dropdown.contains(e.target);
+            const isClickOnHamburger = hamburger.contains(e.target);
+
+            if (!isClickInsideDropdown && !isClickOnHamburger) {
+              hamburger.classList.remove("active");
+              dropdown.classList.remove("active");
+              hamburger.setAttribute("aria-expanded", "false");
+            }
           });
         }
 
