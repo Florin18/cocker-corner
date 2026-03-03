@@ -160,7 +160,7 @@
       /* =========================================================
          Header / Sticky Nav
          ========================================================= */
-      header {
+      .site-header {
         position: sticky;
         top: 0;
         z-index: 50;
@@ -372,7 +372,7 @@
         padding-left: calc(var(--s-6) - 3px);
       }
 
-      header {
+      .site-header {
         position: sticky;
         top: 0;
         z-index: 50;
@@ -383,7 +383,7 @@
         transition: transform var(--dur) var(--ease);
       }
 
-      header.hide {
+      .site-header.hide {
         transform: translateY(-100%);
       }
 
@@ -1087,7 +1087,7 @@
   <body>
     <a class="skip-link" href="#main">Sari la conținut</a>
 
-    <header>
+    <header class="site-header">
       <div class="container">
         <nav class="nav" aria-label="Navigare principală">
           <a class="brand" href="#top" aria-label="Mergi la începutul paginii">
@@ -1166,7 +1166,7 @@
 
             <div class="kpi" role="list">
               <div class="kpi-item" role="listitem">
-                <strong>Nivel de energie: Ridicat</strong>
+                <strong>Energie: Ridicată</strong>
                 <span>Are nevoie zilnic de mișcare și interacțiune constantă cu familia.</span>
               </div>
               <div class="kpi-item" role="listitem">
@@ -1649,7 +1649,7 @@
         }
 
         // Scroll hide header
-        const header = document.querySelector("header");
+        const header = document.querySelector(".site-header");
         let lastScrollTop = 0;
 
         window.addEventListener(
@@ -1677,6 +1677,42 @@
           document.querySelectorAll(".dropdown a[href^='#']")
         );
         const navLinks = [...navLinksDesktop, ...navLinksMobile];
+
+        function scrollNavTarget(hash) {
+          if (!hash || hash === "#") return;
+
+          const target = document.getElementById(hash.slice(1));
+          if (!target) return;
+
+          header?.classList.remove("hide");
+
+          const anchorTarget = target.matches("section")
+            ? target.querySelector(".section-head") || target
+            : target;
+          const headerOffset = header?.offsetHeight || 0;
+          const top = Math.max(
+            0,
+            anchorTarget.getBoundingClientRect().top +
+              window.scrollY -
+              headerOffset
+          );
+
+          window.scrollTo({
+            top,
+            behavior: prefersReducedMotion ? "auto" : "smooth",
+          });
+          history.pushState(null, "", hash);
+        }
+
+        navLinks.forEach((link) => {
+          link.addEventListener("click", (e) => {
+            const hash = link.getAttribute("href");
+            if (!hash?.startsWith("#")) return;
+
+            e.preventDefault();
+            scrollNavTarget(hash);
+          });
+        });
 
         const sectionIds = navLinksDesktop
           .map((a) => a.getAttribute("href"))
